@@ -30,8 +30,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 DATE_START = date(2024, 1, 1)
 DATE_END   = date(2024, 1, 31)
 
-#date.today()
-
 # URL directa al iframe — evita navegar por la página principal
 URL_IFRAME = "https://microfe.cammesa.com/visorpubespeciales/#/reportes?nemo=PERTURBACIONES_SADI_UNIF"
 
@@ -55,16 +53,23 @@ logging.basicConfig(
 
 def build_driver(headless: bool = False) -> webdriver.Chrome:
     opts = Options()
+    
     if headless:
         opts.add_argument("--headless=new")
+    
+    # 🛠️ Flags críticos para evitar crashes en GitHub Codespaces / Linux Contenedores
     opts.add_argument("--no-sandbox")
     opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--disable-gpu")
+    
+    # Configuración de entorno y suplantación de identidad del navegador
     opts.add_argument("--window-size=1400,900")
     opts.add_argument(
         "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/124.0.0.0 Safari/537.36"
     )
+    
     service = Service(ChromeDriverManager().install())
     return webdriver.Chrome(service=service, options=opts)
 
@@ -98,8 +103,8 @@ def set_date_js(driver: webdriver.Chrome, target: date) -> None:
     
     fecha_input.click()
     
-    # Seleccionar todo y borrar de manera limpia
-    fecha_input.send_keys(Keys.COMMAND + "a")  # Si usas Windows/Linux, podés cambiar COMMAND por CONTROL
+    # Seleccionar todo y borrar de manera limpia (Usa CONTROL por compatibilidad con Linux/Codespaces)
+    fecha_input.send_keys(Keys.CONTROL + "a")  
     fecha_input.send_keys(Keys.BACKSPACE)
     fecha_input.send_keys(Keys.DELETE)
     
@@ -109,8 +114,6 @@ def set_date_js(driver: webdriver.Chrome, target: date) -> None:
     
     # Pequeña pausa para permitir que la tabla asimile el cambio de fecha
     time.sleep(3)
-
-
 
 
 def extract_rows(driver: webdriver.Chrome, target: date) -> list[dict]:
@@ -225,8 +228,8 @@ def export_csv(events: list[dict]) -> None:
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    # False = ver Chrome mientras corre (recomendado para primera prueba)
-    HEADLESS = False
+    # 🔒 OBLIGATORIO TRUE PARA ENTORNOS EN LA NUBE (GitHub Codespaces)
+    HEADLESS = True
 
     print(f"Scrapeando perturbaciones del SADI: {DATE_START} -> {DATE_END}")
     print(f"Pausa entre requests: {WAIT_MIN}-{WAIT_MAX}s | Headless: {HEADLESS}\n")
