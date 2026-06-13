@@ -53,7 +53,7 @@ logging.basicConfig(
 
 # ── Driver ─────────────────────────────────────────────────────────────────────
 
-def build_driver(headless: bool = True) -> webdriver.Chrome:
+def build_driver(headless: bool = False) -> webdriver.Chrome:
     opts = Options()
     if headless:
         opts.add_argument("--headless=new")
